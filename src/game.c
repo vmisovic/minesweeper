@@ -42,11 +42,11 @@ void RemoveFlaged(field *f)
 	*f &= ~(FLAGED_BIT_MASK);
 }
 
-void InitGame(int width, int height)
+void InitGame(int width, int height, int mines)
 {
 	g.w = width;
 	g.h = height;
-	g.m = 0;
+	g.m = mines;
 	g.f = 0;
 	g.o = 0;
 	g.M = (field **)malloc(g.h * sizeof(field *));
@@ -65,9 +65,8 @@ void InitGame(int width, int height)
 	g.s = WAIT;
 }
 
-void StartGame(int mines, int seed)
+void GenerateGame(int x, int y, int seed)
 {
-	g.m = mines;
 	g.f = 0;
 	g.o = 0;
 	printf("GAME: Placing %d mines (seed: %d)\n", g.m, seed);
@@ -75,6 +74,7 @@ void StartGame(int mines, int seed)
 	for (int j = 0; j < g.h; j++)
 		for (int i = 0; i < g.w; i++)
 			g.M[j][i] = 0;
+	int mines = g.m;
 	while (mines > 0){
 		int x = rand() % g.w;
 		int y = rand() % g.h;
@@ -98,58 +98,68 @@ void CloseGame()
 	for (int i = 0; i < g.h; i++)
 		free(g.M[i]);
 	free(g.M);
+	printf("GAME: Closed %d * %d map.\n", g.w, g.h);
 }
 
-bool FlagField(int x, int y)
+void FlagField(int x, int y)
 {
+	if (g.s != RUNNING)
+		return;
 	field *f = &g.M[y][x];
-	if (IsOpened(*f) || IsFlaged(*f))
-		return 0;
-	// flags++
-	g.f++;
-	SetFlaged(f);
-	return 1;
+	if (!IsOpened(*f) && !IsFlaged(*f)){
+		// flags++
+		g.f++;
+		SetFlaged(f);
+	}
 }
 
-bool UnflagField(int x, int y)
+void UnflagField(int x, int y)
 {
+	if (g.s != RUNNING)
+		return;
 	field *f = &g.M[y][x];
 	if (IsFlaged(*f)){
 		// flags--
 		g.f--;
 		RemoveFlaged(f);
-		return 1;
 	}
-	return 0;
 }
 
-int OpenField(int x, int y)
+void OpenField(int x, int y)
 {
 	field *f = &g.M[y][x];
-	UnflagField(x, y);
-	if (IsMine(*f)){
-		// game lost
-		g.s = LOST;
-		g.t2 = time(0);
-		printf("GAME: Mine (%d, %d) exploded!\n", x, y);
-		printf("GAME: Elapsed time: %ds\n", GameElapsedTimeSec());
-		SetOpened(f);
-		return BOOM;
+	switch (g.s)
+	{
+	case WAIT:
+		GenerateGame(x, y, time(0));
+	case RUNNING:
+		UnflagField(x, y);
+		if (IsMine(*f)){
+			// game lost
+			g.s = LOST;
+			g.t2 = time(0);
+			printf("GAME: Mine (%d, %d) exploded!\n", x, y);
+			printf("GAME: Elapsed time: %ds\n", GameElapsedTimeSec());
+			SetOpened(f);
+			return;
+		}
+		int val = GetValue(*f);
+		if (!IsOpened(*f)){
+			// dig field
+			g.o++;
+			SetOpened(f);
+			IsGameSolved();
+			// dig all zeroes
+			if (val == 0)
+				for (int i = MAX(x - 1, 0); i <= MIN(x + 1, g.w - 1); i++)
+					for (int j = MAX(y - 1, 0); j <= MIN(y + 1, g.h - 1); j++)
+						if (!IsOpened(g.M[j][i]) && !(i == x && j == y))
+							OpenField(i, j);
+		}
+		break;
+	default:
+		break;
 	}
-	int val = GetValue(*f);
-	if (!IsOpened(*f)){
-		// dig field
-		g.o++;
-		SetOpened(f);
-		IsGameSolved();
-		// dig all zeroes
-		if (val == 0)
-			for (int i = MAX(x - 1, 0); i <= MIN(x + 1, g.w - 1); i++)
-				for (int j = MAX(y - 1, 0); j <= MIN(y + 1, g.h - 1); j++)
-					if (!IsOpened(g.M[j][i]) && !(i == x && j == y))
-						OpenField(i, j);
-	}
-	return val;
 }
 
 int GetValueOfField(int x, int y)
@@ -157,27 +167,28 @@ int GetValueOfField(int x, int y)
 	field f = g.M[y][x];
 	switch (g.s)
 	{
+	case SOLVED:
+		if (!IsFlaged(f) && IsMine(f))
+			return MINE;
 	case RUNNING:
 		if (IsFlaged(f))
 			return FLAG;
-		if (!IsFlaged(f) && !IsOpened(f))
-			return UNSOLVED;
-		if (!IsFlaged(f) && IsOpened(f))
-			return GetValue(f);
-	case LOST:
-		if (IsOpened(f) && IsMine(f))
-			return BOOM;
-		if (IsFlaged(f) && !IsMine(f))
-			return FALSEF;
-		if (IsFlaged(f) && IsMine(f))
-			return FLAG;
 		if (IsOpened(f))
 			return GetValue(f);
-	case SOLVED:
+		return UNSOLVED;
+	case LOST:
+		if (IsFlaged(f)){
+			if (IsMine(f))
+				return FLAG;
+			return FALSEF;
+		}
+		if (IsOpened(f)){
+			if (IsMine(f))
+				return BOOM;
+			return GetValue(f);
+		}
 		if (IsMine(f))
 			return MINE;
-		if (IsOpened(f))
-			return GetValue(f);
 	default:
 		return UNSOLVED;
 	}
@@ -251,7 +262,7 @@ bool IsGameSolved()
 	}
 }
 
-bool IsGameRunning()
+state GetGameState()
 {
-	return g.s == RUNNING;
+	return g.s;
 }

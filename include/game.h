@@ -7,13 +7,7 @@
 #include <stdbool.h>
 #include <time.h>
 
-typedef enum {
-	WAIT,
-	RUNNING,
-	SOLVED,
-	LOST
-} state;
-
+typedef uint8_t field;
 #define FLAGED_BIT_MASK 0b100000
 #define OPENED_BIT_MASK 0b010000
 #define VALUE_BIT_MASK  0b001111
@@ -25,7 +19,12 @@ enum {
 	FALSEF
 };
 
-typedef uint8_t field;
+typedef enum {
+	WAIT,
+	RUNNING,
+	SOLVED,
+	LOST
+} state;
 
 typedef struct {
 	int w;
@@ -38,17 +37,17 @@ typedef struct {
 	time_t t1, t2;
 } game;
 
-#define MAX(a, b) ((a > b)? a: b)
-#define MIN(a, b) ((a < b)? a: b)
-#define ABS(a) ((a > 0)? a: -a)
+#define MAX(a, b) (((a) > (b))? (a): (b))
+#define MIN(a, b) (((a) < (b))? (a): (b))
+#define ABS(a) (((a) > 0)? (a): -(a))
 
-void InitGame(int width, int height);
-void StartGame(int mines, int seed);
+void InitGame(int width, int height, int mines);
+void GenerateGame(int x, int y, int seed);
 void CloseGame();
 
-bool FlagField(int x, int y);
-bool UnflagField(int x, int y);
-int OpenField(int x, int y);
+void FlagField(int x, int y);
+void UnflagField(int x, int y);
+void OpenField(int x, int y);
 int GetValueOfField(int x, int y);
 bool IsFieldOpened(int x, int y);
 bool IsFieldFlaged(int x, int y);
@@ -59,6 +58,6 @@ int GetNumberOfFlags();
 int GetNumberOfMines();
 int GameElapsedTimeSec();
 bool IsGameSolved();
-bool IsGameRunning();
+state GetGameState();
 
 #endif

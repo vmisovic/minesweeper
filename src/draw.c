@@ -9,15 +9,6 @@ const float zoomMin = 0.5f;
 const float zoomIncrement = 0.02f;
 const int space = 100;
 const int step = 10;
-
-Vector2 GetFieldCoord(Vector2 mouseWorldPos)
-{
-	Vector2 coord;
-	coord.x = (int)(mouseWorldPos.x + (float)W * 0.5f * CELL) / CELL;
-	coord.y = (int)(mouseWorldPos.y + (float)H * 0.5f * CELL) / CELL;
-	return coord;
-}
-
 Vector2 GetFieldPos(int x, int y)
 {
 	Vector2 p;
@@ -31,6 +22,12 @@ Rectangle GetFieldRec(int x, int y)
 	Vector2 p = GetFieldPos(x, y);
 	Rectangle r = { p.x, p.y, CELL, CELL };
 	return r;
+}
+
+void DrawTextCenteredX(const char *text, int posY, int fontSize, Color color)
+{
+	int posX = (GetScreenWidth() - MeasureText(text, fontSize)) / 2;
+	DrawText(text, posX, posY, fontSize, color);
 }
 
 void DrawMatrix()
@@ -80,17 +77,23 @@ void DrawMatrix()
 
 void DrawStats()
 {
-	int fontSize[] = { 30, 20 };
-	int y[] = { 10, 45 };
+	const char *flags_mines = TextFormat("%02d / %02d", GetNumberOfFlags(), M);
+	DrawTextCenteredX(flags_mines, 10, 30, BLACK);
+
 	int sec = GameElapsedTimeSec();
-	const char *text[] = {
-		TextFormat("%02d / %02d", GetNumberOfFlags(), M),
-		TextFormat("%02d:%02d", sec / 60, sec % 60)
-	};
-	for (int i = 0; i < 2; i++){
-		int x = (GetScreenWidth() - MeasureText(text[i], fontSize[i])) / 2;
-		DrawText(text[i], x, y[i], fontSize[i], BLACK);
-	}
+	const char *time = TextFormat("%02d:%02d", sec / 60, sec % 60);
+	DrawTextCenteredX(time, 45, 20, BLACK);
+}
+
+void DrawEndMessage(const char *message)
+{
+	int fontSize = 100;
+	int y = (GetScreenHeight() - fontSize) / 2;
+	DrawTextCenteredX(message, y, 102, PURPLE);
+	DrawTextCenteredX(message, y, 100, BLACK);
+
+	y += fontSize;
+	DrawTextCenteredX("click [space] to continue", y, 20, BLACK);
 }
 
 void ResetCamera2D(Camera2D *camera)

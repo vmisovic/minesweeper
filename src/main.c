@@ -1,13 +1,17 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <raylib.h>
-#include <raymath.h>
 #include "game.h"
 #include "draw.h"
 #include "handle.h"
+
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
+
+typedef enum {
+	WELCOME,
+	MENU,
+	GAME
+} scene;
 
 int main(void)
 {
@@ -21,66 +25,66 @@ int main(void)
 	int w = 20;
 	int h = 15;
 	int m = 50;
-	InitGame(w, h);
-	StartGame(m, time(0));
+	scene s = WELCOME;
+	InitGame(w, h, m);
 	// loop
 	while (!WindowShouldClose()){
-		// check if game is solved
-		IsGameSolved();
-		// handle user input
-		// handel zoom
-		HandleZoom(&camera);
-		// handle move
-		if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && IsKeyDown(KEY_LEFT_SHIFT)){
-			//HandleMoveMap();
-			Vector2 delta = GetMouseDelta();
-			delta = Vector2Scale(delta, -1.0f / camera.zoom);
-			camera.target = Vector2Add(camera.target, delta);
-		}
-		else {
-			if (IsGameRunning()){
-				Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-				Vector2 coord = GetFieldCoord(mouseWorldPos);
-				HandleClickOnField(coord.x, coord.y);
-			}
-			else {
+		switch (s)
+		{
+		case WELCOME:
+			if (IsKeyPressed(KEY_M))
+				s = MENU;
+			if (IsKeyPressed(KEY_SPACE))
+				s = GAME;
+			BeginDrawing();
+				ClearBackground(VIOLET);
+				DrawTextCenteredX("WELCOME", 200, 100, BLACK);
+			EndDrawing();
+			break;
+		case MENU:
+			if (IsKeyPressed(KEY_M))
+				s = GAME;
+			BeginDrawing();
+				ClearBackground(VIOLET);
+				DrawTextCenteredX("Menu", 200, 20, BLACK);
+			EndDrawing();
+			break;
+		case GAME:
+			if (IsKeyPressed(KEY_M))
+				s = MENU;
+			HandleZoom(&camera);
+			HandleMoveMap(&camera);
+			HandleClickOnField(&camera);
+			if (GetGameState() == SOLVED || GetGameState() == LOST)
 				// new game
 				if (IsKeyPressed(KEY_SPACE)){
 					if (IsGameSolved())
 						m++;
 					else
 						m--;
-					StartGame(m, time(0));
+					CloseGame();
+					InitGame(w, h, m);
 					ResetCamera2D(&camera);
 				}
-			}
+			// update camera to valid position
+			UpdateCamera2D(&camera);
+			// drawing
+			BeginDrawing();
+				ClearBackground(VIOLET);
+				// if (RUNNING)
+				BeginMode2D(camera);
+					DrawMatrix();
+				EndMode2D();
+				if (GetGameState() == WAIT)
+					DrawTextCenteredX("Click to start", 200, 20, BLACK);
+				DrawStats();
+				if (GetGameState() == SOLVED)
+					DrawEndMessage("You won!");
+				if (GetGameState() == LOST)
+					DrawEndMessage("Game over!");
+			EndDrawing();
+			break;
 		}
-		// update camera to valid position
-		UpdateCamera2D(&camera);
-		// drawing
-		BeginDrawing();
-			ClearBackground(VIOLET);
-			BeginMode2D(camera);
-				DrawMatrix();
-			EndMode2D();
-			if (!IsGameRunning()){
-				if (IsGameSolved()){
-					// DrawWinMessage()
-					DrawText("You won!", 190, 240, 100, BLACK);
-					DrawText("You won!", 210, 260, 100, BLACK);
-					DrawText("You won!", 210, 240, 100, BLACK);
-					DrawText("You won!", 190, 260, 100, BLACK);
-					DrawText("You won!", 200, 250, 100, YELLOW);
-				}
-				else {
-					// DrawLosMessage()
-					DrawText("Game over!", 130, 250, 100, BLACK);
-				}
-				// click left to continue
-				DrawText("click [space] to continue", 250, 350, 20, BLACK);
-			}
-			DrawStats();
-		EndDrawing();
 	}
 	// cleanup
 	CloseGame();

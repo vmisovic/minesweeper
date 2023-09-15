@@ -4,8 +4,10 @@
 #include "game.h"
 #include "draw.h"
 #include <raylib.h>
+#include <raymath.h>
 
-void HandleClickOnField(int x, int y);
+void HandleClickOnField(Camera2D *camera);
 void HandleZoom(Camera2D *camera);
+void HandleMoveMap(Camera2D *camera);
 
 #endif

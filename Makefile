@@ -8,7 +8,7 @@ SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 INCLUDE_FILES = $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-CFLAGS = -Wall -I$(INCLUDE_DIR)
+CFLAGS = -Wall -I$(INCLUDE_DIR) -O3
 LDFLAGS = -lraylib
 
 EXECUTABLE = minesweeper
@@ -28,6 +28,9 @@ clean:
 .PHONY: all clean
 
 all: $(EXECUTABLE)
+
+run: $(EXECUTABLE)
+	./$(EXECUTABLE)
 
 -include $(OBJ_FILES:.o=.d)
 
