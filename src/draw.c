@@ -6,7 +6,7 @@
 
 const float zoomMax = 5.0f;
 const float zoomMin = 0.5f;
-const float zoomIncrement = 0.02f;
+const float zoomIncrement = 0.05f;
 const int space = 100;
 const int step = 10;
 Vector2 GetFieldPos(int x, int y)

@@ -5,7 +5,7 @@
 
 void HandleClickOnField(Camera2D *camera)
 {
-	if (IsKeyDown(KEY_LEFT_SHIFT))
+	if (IsKeyDown(KEY_LEFT_CONTROL))
 		return;
 	Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), *camera);
 	int x = (int)(mouseWorldPos.x + (float)W * 0.5f * CELL) / CELL;
@@ -35,7 +35,7 @@ void HandleZoom(Camera2D *camera)
 
 void HandleMoveMap(Camera2D *camera)
 {
-	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && IsKeyDown(KEY_LEFT_SHIFT)){
+	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && IsKeyDown(KEY_LEFT_CONTROL)){
 		Vector2 delta = GetMouseDelta();
 		delta = Vector2Scale(delta, -1.0f / camera->zoom);
 		camera->target = Vector2Add(camera->target, delta);

@@ -4,8 +4,16 @@
 #include "draw.h"
 #include "handle.h"
 
-#define WIN_WIDTH 800
-#define WIN_HEIGHT 600
+#if defined(PLATFORM_WEB)
+	#include <emscripten/emscripten.h>
+	#define WIN_WIDTH 1920
+	#define WIN_HEIGHT 1080
+#else
+	#define WIN_WIDTH 800
+	#define WIN_HEIGHT 600
+#endif
+
+void UpdateDrawFrame(void);
 
 typedef enum {
 	WELCOME,
@@ -13,22 +21,37 @@ typedef enum {
 	GAME
 } scene;
 
+Camera2D camera;
+int w = 20;
+int h = 15;
+int m = 50;
+scene s = WELCOME;
+
 int main(void)
 {
 	// window
 	InitWindow(WIN_WIDTH, WIN_HEIGHT, "test");
-	SetTargetFPS(60);
 	// camera
-	Camera2D camera;
 	ResetCamera2D(&camera);
 	// game
-	int w = 20;
-	int h = 15;
-	int m = 50;
-	scene s = WELCOME;
 	InitGame(w, h, m);
 	// loop
+#if defined(PLATFORM_WEB)
+	emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
+#else
+	SetTargetFPS(60);
 	while (!WindowShouldClose()){
+		UpdateDrawFrame();
+	}
+#endif
+	// cleanup
+	CloseGame();
+	CloseWindow();
+	return 0;
+}
+
+void UpdateDrawFrame()
+{
 		switch (s)
 		{
 		case WELCOME:
@@ -85,9 +108,4 @@ int main(void)
 			EndDrawing();
 			break;
 		}
-	}
-	// cleanup
-	CloseGame();
-	CloseWindow();
-	return 0;
 }

@@ -4,7 +4,7 @@
 #include "game.h"
 #include <raylib.h>
 
-#define CELL 16
+#define CELL 20
 
 Vector2 GetFieldPos(int x, int y);
 Rectangle GetFieldRec(int x, int y);
