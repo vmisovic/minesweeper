@@ -19,6 +19,8 @@ IN_HTML = template.html
 RAYLIB_SRC = raylib/src
 LIBRAYLIB_A = $(RAYLIB_SRC)/libraylib.a
 
+.PHONY: all clean web
+
 $(EXECUTABLE): $(OBJ_FILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
@@ -31,14 +33,11 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR) $(WEB_DIR) $(EXECUTABLE)
 
-.PHONY: all clean
-
 all: $(EXECUTABLE)
 
 run: $(EXECUTABLE)
 	./$(EXECUTABLE)
-
-web: all
+web:
 	mkdir -p $(WEB_DIR)
 	emcc -o $(WEB_DIR)/$(OUT_HTML) $(SRC_FILES) -Wall -I$(INCLUDE_DIR) $(LIBRAYLIB_A) -I$(RAYLIB_SRC) -L$(RAYLIB_SRC) -Os -s USE_GLFW=3 --shell-file $(IN_HTML) -DPLATFORM_WEB
 
