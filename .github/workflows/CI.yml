@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install emsdk
+        uses: mymindstorm/setup-emsdk@v11
+
+      - name: Version of emcc
+        run: emcc -v
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Compile raylib for web
+        run: |
+          git clone https://github.com/raysan5/raylib.git
+          cd raylib/src/
+          make PLATFORM=PLATFORM_WEB -B
+          ls libraylib.a
+        working-directory: ./
+
+      - name: Build project
+        run: make web
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
