@@ -60,16 +60,16 @@ void DrawMatrix()
 				text = "*";
 				break;
 			case FLAG:
-				text = "F";
+				text = "P";
 				break;
 			case FALSEF:
-				text = "X";
+				text = "x";
 				break;
 			default:
 				text = TextFormat("%d", val);
 				break;
 			}
-			Color color_array[15] = {BLANK, BLUE, GREEN, RED, YELLOW, SKYBLUE, GOLD, PURPLE, DARKBROWN, BLACK, BLANK, RED, WHITE, RED };
+			Color color_array[15] = {BLANK, BLUE, GREEN, RED, YELLOW, SKYBLUE, GOLD, PURPLE, DARKBROWN, BLACK, BLANK, { 248, 73, 19, 255 }, WHITE, { 248, 73, 19, 255 } };
 			DrawText(text, r.x + CELL / 4, r.y + CELL / 16, CELL, color_array[val]);
 		}
 	}

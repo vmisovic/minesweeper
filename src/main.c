@@ -25,7 +25,7 @@ Camera2D camera;
 int w = 20;
 int h = 15;
 int m = 50;
-scene s = WELCOME;
+scene s = GAME;
 
 int main(void)
 {
@@ -69,7 +69,20 @@ void UpdateDrawFrame()
 			s = GAME;
 		BeginDrawing();
 			ClearBackground(VIOLET);
-			DrawTextCenteredX("Menu", 200, 20, BLACK);
+			DrawTextCenteredX("Menu", 200, 50, BLACK);
+			if (GetGameState() == RUNNING){
+				int sec = GameElapsedTimeSec();
+				DrawTextCenteredX(TextFormat("Clock is ticking! (%02d:%02d)", sec / 60, sec % 60), 250, 20, BLACK);
+				DrawTextCenteredX("Reset [R]", 300, 30, BLACK);
+				if (IsKeyPressed(KEY_R)){
+					CloseGame();
+					InitGame(w, h, m);
+					ResetCamera2D(&camera);
+					s = GAME;
+				}
+			}
+			DrawTextCenteredX("Close menu [M]", 270, 30, BLACK);
+			DrawTextCenteredX("Custom game", 330, 30, BLACK);
 		EndDrawing();
 		break;
 	case GAME:
