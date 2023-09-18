@@ -9,6 +9,7 @@ const float zoomMin = 0.5f;
 const float zoomIncrement = 0.05f;
 const int space = 100;
 const int step = 10;
+
 Vector2 GetFieldPos(int x, int y)
 {
 	Vector2 p;
@@ -28,6 +29,13 @@ void DrawTextCenteredX(const char *text, int posY, int fontSize, Color color)
 {
 	int posX = (GetScreenWidth() - MeasureText(text, fontSize)) / 2;
 	DrawText(text, posX, posY, fontSize, color);
+}
+
+void DrawTextCenteredXUnderlined(const char *text, int posY, int fontSize, Color c1, Color c2)
+{
+	int d = (fontSize >= 100)? fontSize * 0.05f: fontSize * 0.1f;
+	DrawTextCenteredX(text, posY + d, fontSize, c2);
+	DrawTextCenteredX(text, posY, fontSize, c1);
 }
 
 void DrawMatrix()
@@ -89,11 +97,10 @@ void DrawEndMessage(const char *message)
 {
 	int fontSize = 100;
 	int y = (GetScreenHeight() - fontSize) / 2;
-	DrawTextCenteredX(message, y, 102, PURPLE);
 	DrawTextCenteredX(message, y, 100, BLACK);
 
 	y += fontSize;
-	DrawTextCenteredX("click [space] to continue", y, 20, BLACK);
+	DrawTextCenteredX("Press [space] to continue", y, 20, BLACK);
 }
 
 void ResetCamera2D(Camera2D *camera)

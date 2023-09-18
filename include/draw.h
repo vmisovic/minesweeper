@@ -9,6 +9,7 @@
 Vector2 GetFieldPos(int x, int y);
 Rectangle GetFieldRec(int x, int y);
 void DrawTextCenteredX(const char *text, int posY, int fontSize, Color color);
+void DrawTextCenteredXUnderlined(const char *text, int posY, int fontSize, Color c1, Color c2);
 void DrawMatrix();
 void DrawStats();
 void DrawEndMessage(const char *message);
