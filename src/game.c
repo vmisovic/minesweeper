@@ -76,12 +76,12 @@ void GenerateGame(int x, int y, int seed)
 			g.M[j][i] = 0;
 	int mines = g.m;
 	while (mines > 0){
-		int x = rand() % g.w;
-		int y = rand() % g.h;
-		if (!IsMine(g.M[y][x])){
-			SetMine(&g.M[y][x]);
-			for (int i = MAX(x - 1, 0); i <= MIN(x + 1, g.w - 1); i++)
-				for (int j = MAX(y - 1, 0); j <= MIN(y + 1, g.h - 1); j++)
+		int rx = rand() % g.w;
+		int ry = rand() % g.h;
+		if (!IsMine(g.M[ry][rx]) && !((rx >= (x - 1)) && (rx <= (x + 1)) && (ry >= (y - 1)) && (ry <= (y + 1)))){
+			SetMine(&g.M[ry][rx]);
+			for (int i = MAX(rx - 1, 0); i <= MIN(rx + 1, g.w - 1); i++)
+				for (int j = MAX(ry - 1, 0); j <= MIN(ry + 1, g.h - 1); j++)
 					if (!IsMine(g.M[j][i]))
 						g.M[j][i]++;
 			mines--;
