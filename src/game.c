@@ -49,6 +49,7 @@ void InitGame(int width, int height, int mines)
 	g.m = mines;
 	g.f = 0;
 	g.o = 0;
+	CloseGame();
 	g.M = (field **)malloc(g.h * sizeof(field *));
 	if (g.M == NULL) {
 		exit(1);
@@ -94,10 +95,13 @@ void GenerateGame(int x, int y, int seed)
 
 void CloseGame()
 {
+	if (g.M == NULL)
+		return;
 	g.s = WAIT;
 	for (int i = 0; i < g.h; i++)
 		free(g.M[i]);
 	free(g.M);
+	g.M = NULL;
 	printf("GAME: Closed %d * %d map.\n", g.w, g.h);
 }
 

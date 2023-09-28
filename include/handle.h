@@ -9,5 +9,6 @@
 void HandleClickOnField(Camera2D *camera);
 void HandleZoom(Camera2D *camera);
 void HandleMoveMap(Camera2D *camera);
+int GetScrolingOnRec(Rectangle r);
 
 #endif

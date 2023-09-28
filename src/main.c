@@ -25,6 +25,7 @@ Camera2D camera;
 int w = 20;
 int h = 15;
 int m = 50;
+int c_w, c_h, c_m;
 scene s = WELCOME;
 
 int main(void)
@@ -35,6 +36,9 @@ int main(void)
 	ResetCamera2D(&camera);
 	// game
 	InitGame(w, h, m);
+	c_w = w;
+	c_h = h;
+	c_m = m;
 	// loop
 #if defined(PLATFORM_WEB)
 	emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
@@ -52,6 +56,7 @@ int main(void)
 
 void UpdateDrawFrame()
 {
+	int y;
 	switch (s)
 	{
 	case WELCOME:
@@ -61,11 +66,15 @@ void UpdateDrawFrame()
 			s = GAME;
 		BeginDrawing();
 			ClearBackground(VIOLET);
-			DrawTextCenteredXUnderlined("MINESWEEPER", 200, 100, RAYWHITE, PURPLE);
-			DrawTextCenteredXUnderlined("Press [space] to start solving!", 300, 30, RAYWHITE, PURPLE);
-			DrawTextCenteredX("Press [space] to start solving!", 300, 30, RAYWHITE);
-			DrawTextCenteredX("Written in C by Vladimir.", 400, 20, PURPLE);
-			DrawTextCenteredX("github.com/vmisovic/minesweeper", 420, 20, PURPLE);
+			// name of game / main title
+			y = GetScreenHeight() / 3;
+			DrawTextCenteredXUnderlined("MINESWEEPER", y, 100, RAYWHITE, PURPLE);
+			// ?
+			DrawTextCenteredXUnderlined("Press [space] to start solving!", y += 100, 30, RAYWHITE, PURPLE);
+			// tip / info
+			y = GetScreenHeight() * 2 / 3;
+			DrawTextCenteredX("Written in C by Vladimir.", y, 20, PURPLE);
+			DrawTextCenteredX("github.com/vmisovic/minesweeper", y += 20, 20, PURPLE);
 		EndDrawing();
 		break;
 	case MENU:
@@ -79,28 +88,76 @@ void UpdateDrawFrame()
 			ResetCamera2D(&camera);
 			s = GAME;
 		}
+		if (IsKeyPressed(KEY_ENTER)){
+			w = c_w;
+			h = c_h;
+			m = c_m;
+			CloseGame();
+			InitGame(w, h, m);
+			ResetCamera2D(&camera);
+			s = GAME;
+		}
 		BeginDrawing();
 			ClearBackground(VIOLET);
-			DrawTextCenteredXUnderlined("Menu", 100, 70, RAYWHITE, PURPLE);
+			// sub title / menu title
+			y = (GetScreenHeight() - 400) / 2;
+			DrawTextCenteredXUnderlined("Menu", y, 70, RAYWHITE, PURPLE);
+			y += 70;
 			if (GetGameState() == RUNNING){
 				int sec = GameElapsedTimeSec();
-				DrawTextCenteredX(TextFormat("Clock is ticking! (%02d:%02d)", sec / 60, sec % 60), 170, 20, PURPLE);
+				// info
+				DrawTextCenteredX(TextFormat("Clock is ticking! (%02d:%02d)", sec / 60, sec % 60), y, 20, PURPLE);
 			}
-			DrawTextCenteredXUnderlined("Close menu [M]", 203, 40, WHITE, PURPLE);
-			DrawTextCenteredXUnderlined("Reset [R]", 250, 40, WHITE, PURPLE);
-			DrawTextCenteredXUnderlined("Custom game", 310, 40, WHITE, PURPLE);
-			Rectangle cus = { 100, 305, 600, 200 };
-			Rectangle wc = { 175, 375, 100, 100 };
-			Rectangle hc = { 350, 375, 100, 100 };
-			Rectangle mc = { 525, 375, 100, 100 };
-			DrawRectangleLinesEx(cus, 3, PURPLE);
-			DrawRectangleLinesEx(wc, 3, PURPLE);
-			DrawRectangleLinesEx(hc, 3, PURPLE);
-			DrawRectangleLinesEx(mc, 3, PURPLE);
-			DrawText("Width", 175, 355, 20, PURPLE);
-			DrawText("Height",350, 355, 20, PURPLE);
-			DrawText("Mines", 525, 355, 20, PURPLE);
-			DrawTextCenteredX("Press [enter] to start custom game.", 480, 20, PURPLE);
+			// menu options
+			y += 30;
+			DrawTextCenteredXUnderlined("Close menu [M]", y, 40, WHITE, PURPLE);
+			y += 50;
+			DrawTextCenteredXUnderlined("Reset [R]", y, 40, WHITE, PURPLE);
+			y += 50;
+			// start of custom game options
+				int x = (GetScreenWidth() - 600) / 2;
+				Rectangle cus = { x, y, 600, 200 };
+				DrawRectangleLinesEx(cus, 3, PURPLE);
+				y += 5;
+				DrawTextCenteredXUnderlined("Custom game [enter]", y, 40, WHITE, PURPLE);
+				y += 45;
+				int dx = (600 - 3 * 100) / 4;
+				// width option
+				x += dx;
+				DrawText("Width", x, y, 20, PURPLE);
+				Rectangle wc = { x, y + 20, 100, 100 };
+				DrawRectangleLinesEx(wc, 3, PURPLE);
+				c_w += GetScrolingOnRec(wc);
+				c_w = MAX(c_w, 5);
+				c_w = MIN(c_w, 100);
+				DrawText(TextFormat("%d", c_w), x + 10, y + 45, 50, WHITE);
+				// height option
+				x += dx + 100;
+				DrawText("Height", x, y, 20, PURPLE);
+				Rectangle hc = { x, y + 20, 100, 100 };
+				DrawRectangleLinesEx(hc, 3, PURPLE);
+				c_h += GetScrolingOnRec(hc);
+				c_h = MAX(c_h, 5);
+				c_h = MIN(c_h, 100);
+				DrawText(TextFormat("%d", c_h), x + 10, y + 45, 50, WHITE);
+				// number of mines option
+				x += dx + 100;
+				DrawText("Mines", x, y, 20, PURPLE);
+				Rectangle mc = { x, y + 20, 100, 100 };
+				DrawRectangleLinesEx(mc, 3, PURPLE);
+				if (c_m < 100)
+					c_m += GetScrolingOnRec(mc);
+				else
+					c_m = c_m + GetScrolingOnRec(mc) * 5;
+				c_m = MAX(c_m, c_w * c_h / 20);
+				c_m = MIN(c_m, c_w * c_h / 5);
+				if (c_m > 100)
+					c_m = (c_m / 5) * 5;
+				DrawText(TextFormat("%d", c_m), x + 10, y + 45, 50, WHITE);
+			// end of custom game options
+			// info
+			y += 125;
+			DrawTextCenteredX("Hover mouse over an option and scroll to change value.", y, 20, PURPLE);
 		EndDrawing();
 		break;
 	case GAME:
@@ -130,12 +187,16 @@ void UpdateDrawFrame()
 				DrawMatrix();
 			EndMode2D();
 			if (GetGameState() == WAIT){
-				DrawTextCenteredX("Click to start", 200, 20, BLACK);
-				DrawTextCenteredX("Press [M] for menu", 220, 20, BLACK);
-				DrawTextCenteredX("Left click opens field.", 400, 20, BLACK);
-				DrawTextCenteredX("Right click places flag, middle mouse click removes flag.", 420, 20, BLACK);
-				DrawTextCenteredX("Use scrollwheel to zoom.", 440, 20, BLACK);
-				DrawTextCenteredX("Hold [left-control] and right mouse button to move.", 460, 20, BLACK);
+				// info
+				y = GetScreenHeight() / 3;
+				DrawTextCenteredX("Click to start", y, 20, BLACK);
+				DrawTextCenteredX("Press [M] for menu", y += 20, 20, BLACK);
+				// info on the bottom
+				y = GetScreenHeight() * 2 / 3;
+				DrawTextCenteredX("Left click opens field.", y, 20, BLACK);
+				DrawTextCenteredX("Right click places flag, middle mouse click removes flag.", y += 20, 20, BLACK);
+				DrawTextCenteredX("Use scrollwheel to zoom.", y += 20, 20, BLACK);
+				DrawTextCenteredX("Hold [left-control] and right mouse button to move.", y += 20, 20, BLACK);
 			}
 			DrawStats();
 			if (GetGameState() == SOLVED)

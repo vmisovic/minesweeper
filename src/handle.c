@@ -41,3 +41,10 @@ void HandleMoveMap(Camera2D *camera)
 		camera->target = Vector2Add(camera->target, delta);
 	}
 }
+
+int GetScrolingOnRec(Rectangle r)
+{
+	if (CheckCollisionPointRec(GetMousePosition(), r))
+		return (int)GetMouseWheelMove();
+	return 0;
+}
