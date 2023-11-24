@@ -9,7 +9,7 @@ int GetValue(field f)
 
 bool IsMine(field f)
 {
-	return (GetValue(f) == MINE);
+	return (f & MINED_BIT_MASK);
 }
 
 bool IsOpened(field f)
@@ -22,24 +22,12 @@ bool IsFlaged(field f)
 	return (f & FLAGED_BIT_MASK);
 }
 
-void SetMine(field *f)
+void SetField(field *f, uint8_t mask, bool val)
 {
-	*f = MINE;
-}
-
-void SetOpened(field *f)
-{
-	*f |= OPENED_BIT_MASK;
-}
-
-void SetFlaged(field *f)
-{
-	*f |= FLAGED_BIT_MASK;
-}
-
-void RemoveFlaged(field *f)
-{
-	*f &= ~(FLAGED_BIT_MASK);
+	if (val)
+		*f |= mask;
+	else
+		*f &= ~mask;
 }
 
 void InitGame(int width, int height, int mines)
@@ -80,11 +68,10 @@ void GenerateGame(int x, int y, int seed)
 		int rx = rand() % g.w;
 		int ry = rand() % g.h;
 		if (!IsMine(g.M[ry][rx]) && !((rx >= (x - 1)) && (rx <= (x + 1)) && (ry >= (y - 1)) && (ry <= (y + 1)))){
-			SetMine(&g.M[ry][rx]);
+			SetField(&g.M[ry][rx], MINED_BIT_MASK, 1);
 			for (int i = MAX(rx - 1, 0); i <= MIN(rx + 1, g.w - 1); i++)
 				for (int j = MAX(ry - 1, 0); j <= MIN(ry + 1, g.h - 1); j++)
-					if (!IsMine(g.M[j][i]))
-						g.M[j][i]++;
+					g.M[j][i]++;
 			mines--;
 		}
 	}
@@ -113,7 +100,7 @@ void FlagField(int x, int y)
 	if (!IsOpened(*f) && !IsFlaged(*f)){
 		// flags++
 		g.f++;
-		SetFlaged(f);
+		SetField(f, FLAGED_BIT_MASK, 1);
 	}
 }
 
@@ -125,7 +112,7 @@ void UnflagField(int x, int y)
 	if (IsFlaged(*f)){
 		// flags--
 		g.f--;
-		RemoveFlaged(f);
+		SetField(f, FLAGED_BIT_MASK, 0);
 	}
 }
 
@@ -144,14 +131,14 @@ void OpenField(int x, int y)
 			g.t2 = time(0);
 			printf("GAME: Mine (%d, %d) exploded!\n", x, y);
 			printf("GAME: Elapsed time: %ds\n", GameElapsedTimeSec());
-			SetOpened(f);
+			SetField(f, OPENED_BIT_MASK, 1);
 			return;
 		}
 		int val = GetValue(*f);
 		if (!IsOpened(*f)){
 			// dig field
 			g.o++;
-			SetOpened(f);
+			SetField(f, OPENED_BIT_MASK, 1);
 			IsGameSolved();
 			// dig all zeroes
 			if (val == 0)

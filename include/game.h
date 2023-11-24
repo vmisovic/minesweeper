@@ -8,9 +8,10 @@
 #include <time.h>
 
 typedef uint8_t field;
-#define FLAGED_BIT_MASK 0b100000
-#define OPENED_BIT_MASK 0b010000
-#define VALUE_BIT_MASK  0b001111
+#define FLAGED_BIT_MASK 0b01000000
+#define OPENED_BIT_MASK 0b00100000
+#define MINED_BIT_MASK  0b00010000
+#define VALUE_BIT_MASK  0b00001111
 enum {
 	MINE = 9,
 	UNSOLVED,
